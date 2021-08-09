@@ -1,0 +1,59 @@
+/**
+ * Background Cloud Function to be triggered by Pub/Sub.
+ * This function is exported by index.js, and executed when
+ * the trigger topic receives a message.
+ *
+ * @param {object} data The event payload.
+ * @param {object} context The event metadata.
+ */
+const { base64encode, base64decode } = require('nodejs-base64');
+const Buffer = require('safe-buffer').Buffer;
+const BigQuery = require('@google-cloud/bigquery');
+const bigquery = new BigQuery();
+
+exports.helloPubSub = async (message, context) => {
+    let data1 = message.data;
+    // Decode base64 the PubSub message
+    let logData = Buffer.from(message.data, 'base64').toString();
+    // Convert it in JSON
+    //let logMessage= JSON.parse(logData);
+    console.log(logData);
+    const query = `SELECT SAFE_CONVERT_BYTES_TO_STRING(FROM_BASE64('${logData}')) as json_str`;
+    console.log(query);
+    const options = {
+        query: query,
+        location: "US",
+    };
+
+    const [job] = await bigquery.createQueryJob(options);
+    console.log(`Job ${job.id} started.`);
+
+    // Only wait the end of the job. Theere is no row as answer, it's only an insert
+    
+    const [rows] = await job.getQueryResults();
+
+    console.log("Rows:");
+    rows.forEach((row) => {
+        console.log(row["json_str"]);
+        let msg = JSON.parse(row["json_str"]);
+
+        bigquery
+        .dataset('twitter_dataset')
+        .table('tbt_futbol')
+        .insert( msg ,{'ignoreUnknownValues':true, 'raw':false})
+        .then   ((data) => {
+            console.log(`Inserted 1 rows`);
+            console.log(data);
+        })
+        .catch(err => {
+            if (err && err.name === 'PartialFailureError') {
+              if (err.errors && err.errors.length > 0) {
+                console.log('Insert errors:');
+                err.errors.forEach(err => console.error(err));
+              }
+            } else {
+              console.error('ERROR:', err);
+            }
+    });
+    });
+};
