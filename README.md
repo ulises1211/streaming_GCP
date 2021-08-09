@@ -28,3 +28,9 @@ Documentacion Twitter:
 
 Link Tutorial en Youtube:
 - https://youtu.be/YFbeTgpbwYc
+
+
+Autores:
+- Jose Ulises Martinez Jimenez
+- Luis Antony Mesa
+- Carlos Rojas Bueno
