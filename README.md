@@ -25,3 +25,6 @@ Twitter Develop:
 
 Documentacion Twitter:
 - https://developer.twitter.com/en/docs/twitter-api/metrics
+
+Link Tutorial en Youtube:
+- https://youtu.be/YFbeTgpbwYc
